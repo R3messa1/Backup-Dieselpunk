@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
@@ -8,6 +9,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
     [RequireComponent(typeof (CapsuleCollider))]
     public class RigidbodyFirstPersonController : MonoBehaviour
     {
+        
+
         [Serializable]
         public class MovementSettings
         {
@@ -20,6 +23,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             public AnimationCurve SlopeCurveModifier = new AnimationCurve(new Keyframe(-90.0f, 1.0f), new Keyframe(0.0f, 1.0f), new Keyframe(90.0f, 0.0f));
             [HideInInspector] public float CurrentTargetSpeed = 8f;
 
+           
 #if !MOBILE_INPUT
             private bool m_Running;
 #endif
@@ -48,13 +52,16 @@ namespace UnityStandardAssets.Characters.FirstPerson
 	            {
 		            CurrentTargetSpeed *= JetMultiplier;
 		            m_Running = true;
+                    
 	            }
 	            else
 	            {
 		            m_Running = false;
-	            }
+                    
+                }
 #endif
             }
+            
 
 #if !MOBILE_INPUT
             public bool Running
@@ -260,6 +267,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 m_Jumping = false;
             }
+
         }
+        
     }
 }

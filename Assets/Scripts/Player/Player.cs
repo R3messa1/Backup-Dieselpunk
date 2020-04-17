@@ -15,6 +15,7 @@ public class Player : MonoBehaviour
     private float _verticalSpeed = 0;
     [SerializeField]
     private float _jetSpeedMultiplier = 2.6f;
+    [SerializeField]
     private int _inAirJumps = 1;
 
     //dash related vars

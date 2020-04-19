@@ -14,7 +14,7 @@ public class Player : MonoBehaviour
     private float _jumpSpeed = 10f;
     private float _verticalSpeed = 0;
     [SerializeField]
-    private float _jetSpeedMultiplier = 2.6f;
+    private float _jetSpeedMultiplier = 3f;
     [SerializeField]
     private int _inAirJumps = 1;
 
@@ -28,23 +28,26 @@ public class Player : MonoBehaviour
 
     //Fuel related vars
     [SerializeField]
+    private float _maxFuel = 100f;
+    [SerializeField]
     private float _fuelTank = 100f;
     [SerializeField]
     private float _fuelRechargeRate = 10f;
     [SerializeField]
     private float _fuelRechargeDelay = 3f;
-    private float _fuelNotInUse = 0;
     [SerializeField]
     private float _jetFuelDrainPerSec = 1f;
     [SerializeField]
     private float _dashFuelDrain = 10f;
     private bool _fuelAvailable = true;
-    
+    private bool _fuelInUse = false;
 
+    Coroutine FuelRechargeco;
 
     // Start is called before the first frame update
     void Start()
     {
+
         Cursor.lockState = CursorLockMode.Locked;
 
         _controller = GetComponent<CharacterController>();
@@ -71,6 +74,16 @@ public class Player : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.None;
         }
+
+        if (_fuelInUse == false)
+        {
+            FuelRechargeco = StartCoroutine(FuelRecharge());
+        }
+
+        if(_fuelTank > _maxFuel)
+        {
+            _fuelTank = _maxFuel;
+        }
     }
 
     void CalculateMovement()
@@ -86,18 +99,22 @@ public class Player : MonoBehaviour
         //taking global space values and changing them into local
         velocity = transform.TransformDirection(velocity);
 
-        if (_controller.isGrounded && Input.GetButtonDown("Jump"))
+        if (_controller.isGrounded)
         {
-            _inAirJumps = 1;
-            _verticalSpeed = _jumpSpeed;
+            _verticalSpeed = -1;
+            if (_controller.isGrounded && Input.GetButtonDown("Jump"))
+            {
+                _inAirJumps = 1;
+                _verticalSpeed = _jumpSpeed + 1;
+            }
         }
         else if (Input.GetButtonDown("Jump") && _inAirJumps == 1)
         {
-            _verticalSpeed = _jumpSpeed;
+            _verticalSpeed = _jumpSpeed + 1;
             _inAirJumps--;
         }
 
-        //some ugly code:
+        //some ugly dash logic code:
         _dashDirection = new Vector3(horizontalInput * _dashDistance, 0, verticalInput * _dashDistance);
         _dashDirection = transform.TransformDirection(_dashDirection);
 
@@ -105,23 +122,32 @@ public class Player : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
-                _movespeed *= _jetSpeedMultiplier;
-                _jetHoldTime = Time.timeSinceLevelLoad;
+                _fuelInUse = true;
+                if (_fuelInUse == true)
+                {
+                    StopCoroutine(FuelRechargeco);
+                    _movespeed *= _jetSpeedMultiplier;
+                    _jetHoldTime = Time.timeSinceLevelLoad;
+                    
+                }
             }
-            else if (Input.GetKeyUp(KeyCode.LeftShift))
+            if (Input.GetKeyUp(KeyCode.LeftShift))
             {
                 if (!_jetHeld)
                 {
                     _controller.Move(_dashDirection);
                     _fuelTank -= _dashFuelDrain * Time.deltaTime;
+
                 }
                 _jetHeld = false;
+                _fuelInUse = false;
                 SetDefaultSpeed();
             }
 
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                _fuelTank -= _jetFuelDrainPerSec;
+                _fuelInUse = true;
+                _fuelTank -= _jetFuelDrainPerSec * Time.deltaTime;
                 if (Time.timeSinceLevelLoad - _jetHoldTime > _minHeldDuration)
                 {
                     _jetHeld = true;
@@ -138,7 +164,6 @@ public class Player : MonoBehaviour
 
     void FuelCheck()
     {
-        FuelRechargeCooldown();
         if (_fuelTank <= 0)
         {
             _fuelAvailable = false;
@@ -154,10 +179,10 @@ public class Player : MonoBehaviour
         _movespeed = 9;
     }
 
-    void FuelRechargeCooldown()
+    IEnumerator FuelRecharge()
     {
-        _fuelNotInUse = Time.timeSinceLevelLoad;
-        if(Time.timeSinceLevelLoad - _fuelNotInUse < _fuelRechargeDelay && _fuelTank < 100)
+        yield return new WaitForSeconds(_fuelRechargeDelay);
+        if(_fuelTank < _maxFuel)
         {
             _fuelTank += _fuelRechargeRate * Time.deltaTime;
         }

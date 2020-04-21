@@ -101,10 +101,10 @@ public class Player : MonoBehaviour
 
         if (_controller.isGrounded)
         {
+            _inAirJumps = 1;
             _verticalSpeed = -1;
             if (_controller.isGrounded && Input.GetButtonDown("Jump"))
             {
-                _inAirJumps = 1;
                 _verticalSpeed = _jumpSpeed + 1;
             }
         }

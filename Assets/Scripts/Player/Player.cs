@@ -14,9 +14,12 @@ public class Player : MonoBehaviour
     private float _jumpSpeed = 10f;
     private float _verticalSpeed = 0;
     [SerializeField]
+    private float _crouchSlamSpeed = 20;
+    [SerializeField]
     private float _jetSpeedMultiplier = 3f;
     [SerializeField]
     private int _inAirJumps = 1;
+
 
     //dash related vars
     [SerializeField]
@@ -29,7 +32,6 @@ public class Player : MonoBehaviour
     //Fuel related vars
     [SerializeField]
     private float _maxFuel = 100f;
-    [SerializeField]
     private float _fuelTank = 100f;
     [SerializeField]
     private float _fuelRechargeRate = 10f;
@@ -40,22 +42,24 @@ public class Player : MonoBehaviour
     [SerializeField]
     private float _dashFuelDrain = 10f;
     private bool _fuelAvailable = true;
-    private bool _fuelInUse = false;
-
-    Coroutine FuelRechargeco;
+    private bool _fuelInUse;
 
     // Start is called before the first frame update
     void Start()
     {
+        
 
         Cursor.lockState = CursorLockMode.Locked;
 
         _controller = GetComponent<CharacterController>();
+
+        
     }
 
     // Update is called once per frame
     void Update()
     {
+
         if (Input.GetMouseButtonDown(0))
         {
             Ray rayOrigin = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
@@ -70,17 +74,17 @@ public class Player : MonoBehaviour
         CalculateMovement();
         FuelCheck();
 
+        if (Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            StartCoroutine(FuelCooling());
+        }
+
         if (Input.GetKey(KeyCode.Escape))
         {
             Cursor.lockState = CursorLockMode.None;
         }
 
-        if (_fuelInUse == false)
-        {
-            FuelRechargeco = StartCoroutine(FuelRecharge());
-        }
-
-        if(_fuelTank > _maxFuel)
+        if (_fuelTank > _maxFuel)
         {
             _fuelTank = _maxFuel;
         }
@@ -99,12 +103,18 @@ public class Player : MonoBehaviour
         //taking global space values and changing them into local
         velocity = transform.TransformDirection(velocity);
 
+        //some ugly dash logic code:
+        _dashDirection = new Vector3(horizontalInput * _dashDistance, 0, verticalInput * _dashDistance);
+        _dashDirection = transform.TransformDirection(_dashDirection);
+
+
+        //Jump and doublejump
         if (_controller.isGrounded)
         {
+            _inAirJumps = 1;
             _verticalSpeed = -1;
             if (_controller.isGrounded && Input.GetButtonDown("Jump"))
             {
-                _inAirJumps = 1;
                 _verticalSpeed = _jumpSpeed + 1;
             }
         }
@@ -114,31 +124,37 @@ public class Player : MonoBehaviour
             _inAirJumps--;
         }
 
-        //some ugly dash logic code:
-        _dashDirection = new Vector3(horizontalInput * _dashDistance, 0, verticalInput * _dashDistance);
-        _dashDirection = transform.TransformDirection(_dashDirection);
+        if (_controller.isGrounded == false && Input.GetKey(KeyCode.C))
+        {
+            Vector3 slamDirection = Camera.main.transform.forward * 2;
+            slamDirection += Vector3.down;
+            _controller.Move(slamDirection * _crouchSlamSpeed * Time.deltaTime);
+        }
+        else
+        {
+            transform.position = transform.position;
+        }
 
-        if(_fuelAvailable == true)
+        if (_fuelAvailable == true)
         {
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
                 _fuelInUse = true;
-                if (_fuelInUse == true)
+                if (_fuelInUse)
                 {
-                    StopCoroutine(FuelRechargeco);
                     _movespeed *= _jetSpeedMultiplier;
                     _jetHoldTime = Time.timeSinceLevelLoad;
-                    
                 }
+                FuelRecharge(0);
             }
             if (Input.GetKeyUp(KeyCode.LeftShift))
             {
                 if (!_jetHeld)
                 {
                     _controller.Move(_dashDirection);
-                    _fuelTank -= _dashFuelDrain * Time.deltaTime;
-
+                    _fuelTank -= _dashFuelDrain;
                 }
+                
                 _jetHeld = false;
                 _fuelInUse = false;
                 SetDefaultSpeed();
@@ -146,7 +162,6 @@ public class Player : MonoBehaviour
 
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                _fuelInUse = true;
                 _fuelTank -= _jetFuelDrainPerSec * Time.deltaTime;
                 if (Time.timeSinceLevelLoad - _jetHoldTime > _minHeldDuration)
                 {
@@ -154,7 +169,7 @@ public class Player : MonoBehaviour
                 }
             }
         }
-        
+
         _verticalSpeed -= _gravity * Time.deltaTime;
         velocity.y = _verticalSpeed;
 
@@ -166,6 +181,7 @@ public class Player : MonoBehaviour
     {
         if (_fuelTank <= 0)
         {
+            _fuelTank = 0;
             _fuelAvailable = false;
             SetDefaultSpeed();
         }
@@ -179,12 +195,22 @@ public class Player : MonoBehaviour
         _movespeed = 9;
     }
 
-    IEnumerator FuelRecharge()
+    IEnumerator FuelCooling()
     {
         yield return new WaitForSeconds(_fuelRechargeDelay);
-        if(_fuelTank < _maxFuel)
+
+        FuelRecharge(1);
+    }
+
+    void FuelRecharge(int state)
+    {
+        while(state == 1 && _fuelTank < _maxFuel)
         {
             _fuelTank += _fuelRechargeRate * Time.deltaTime;
+        }
+        if(state == 0)
+        {
+            return;
         }
     }
 }

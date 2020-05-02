@@ -42,18 +42,18 @@ public class Player : MonoBehaviour
     [SerializeField]
     private float _dashFuelDrain = 10f;
     private bool _fuelAvailable = true;
-    private bool _fuelInUse;
+    private bool _canRecharge;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+
 
         Cursor.lockState = CursorLockMode.Locked;
 
         _controller = GetComponent<CharacterController>();
 
-        
+
     }
 
     // Update is called once per frame
@@ -74,10 +74,13 @@ public class Player : MonoBehaviour
         CalculateMovement();
         FuelCheck();
 
-        if (Input.GetKeyUp(KeyCode.LeftShift))
+        if(_canRecharge == true)
         {
-            StartCoroutine(FuelCooling());
+            _fuelTank += _fuelRechargeRate * Time.deltaTime;
+
         }
+        
+        
 
         if (Input.GetKey(KeyCode.Escape))
         {
@@ -139,13 +142,8 @@ public class Player : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
-                _fuelInUse = true;
-                if (_fuelInUse)
-                {
-                    _movespeed *= _jetSpeedMultiplier;
-                    _jetHoldTime = Time.timeSinceLevelLoad;
-                }
-                FuelRecharge(0);
+                _movespeed *= _jetSpeedMultiplier;
+                _jetHoldTime = Time.timeSinceLevelLoad;
             }
             if (Input.GetKeyUp(KeyCode.LeftShift))
             {
@@ -154,14 +152,15 @@ public class Player : MonoBehaviour
                     _controller.Move(_dashDirection);
                     _fuelTank -= _dashFuelDrain;
                 }
-                
+
                 _jetHeld = false;
-                _fuelInUse = false;
+                StartCoroutine(FuelCooling());
                 SetDefaultSpeed();
             }
 
             if (Input.GetKey(KeyCode.LeftShift))
             {
+                _canRecharge = false;
                 _fuelTank -= _jetFuelDrainPerSec * Time.deltaTime;
                 if (Time.timeSinceLevelLoad - _jetHoldTime > _minHeldDuration)
                 {
@@ -198,19 +197,6 @@ public class Player : MonoBehaviour
     IEnumerator FuelCooling()
     {
         yield return new WaitForSeconds(_fuelRechargeDelay);
-
-        FuelRecharge(1);
-    }
-
-    void FuelRecharge(int state)
-    {
-        while(state == 1 && _fuelTank < _maxFuel)
-        {
-            _fuelTank += _fuelRechargeRate * Time.deltaTime;
-        }
-        if(state == 0)
-        {
-            return;
-        }
+        _canRecharge = true;
     }
 }

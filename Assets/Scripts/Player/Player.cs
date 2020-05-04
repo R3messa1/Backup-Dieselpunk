@@ -142,7 +142,7 @@ public class Player : MonoBehaviour
             }
             else if(_fuelAvailable && _inAirJumps == 0)
             {
-                if (Input.GetButton("Jump"))
+                if (Input.GetButton("Jump") && _fuelTank > _dJumpBoostDrain)
                 {
                     _verticalSpeed = _jumpSpeed + 1;
                     _fuelTank -= _dJumpBoostDrain;
@@ -210,11 +210,12 @@ public class Player : MonoBehaviour
 
     void FuelCheck()
     {
-        if (_fuelTank <= 0)
+        if (_fuelTank < 0)
         {
             _fuelTank = 0;
             _fuelAvailable = false;
             SetDefaultSpeed();
+            StartCoroutine(FuelCooling());
         }
         else
         {

@@ -12,27 +12,30 @@ public class Player : MonoBehaviour
     private float _gravity = 9.8f;
     [SerializeField]
     private float _jumpSpeed = 10f;
-    private float _verticalSpeed = 0;
+    private float _verticalSpeed = 0f;
     [SerializeField]
-    private float _crouchSlamSpeed = 20;
+    private float _crouchSlamSpeed = 20f;
     [SerializeField]
     private float _jetSpeedMultiplier = 3f;
     [SerializeField]
+    private float _verticalJetSpeed = 3f;
+    [SerializeField]
     private int _inAirJumps = 1;
+    
 
 
     //dash related vars
     [SerializeField]
     private float _dashDistance = 10f;
     private const float _minHeldDuration = 0.2f;
-    private float _jetHoldTime = 0;
+    private float _jetHoldTime = 0f;
     private bool _jetHeld = false;
     private Vector3 _dashDirection;
 
     //Fuel related vars
     [SerializeField]
     private float _maxFuel = 100f;
-    private float _fuelTank = 100f;
+    private float _fuelTank;
     [SerializeField]
     private float _fuelRechargeRate = 10f;
     [SerializeField]
@@ -41,13 +44,17 @@ public class Player : MonoBehaviour
     private float _jetFuelDrainPerSec = 1f;
     [SerializeField]
     private float _dashFuelDrain = 10f;
+    [SerializeField]
+    private float _verticalJetCostMult = 2f;
     private bool _fuelAvailable = true;
+    private bool _fuelInUse;
     private bool _canRecharge;
+    private float _dJumpBoostDrain = 20f;
 
     // Start is called before the first frame update
     void Start()
     {
-
+        _fuelTank = _maxFuel;
 
         Cursor.lockState = CursorLockMode.Locked;
 
@@ -59,7 +66,7 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        //shoot
         if (Input.GetMouseButtonDown(0))
         {
             Ray rayOrigin = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
@@ -74,13 +81,18 @@ public class Player : MonoBehaviour
         CalculateMovement();
         FuelCheck();
 
-        if(_canRecharge == true)
+
+        if(_canRecharge == true && !_fuelInUse)
         {
             _fuelTank += _fuelRechargeRate * Time.deltaTime;
 
         }
-        
-        
+
+        if(!_fuelInUse)
+        {
+            
+        }
+
 
         if (Input.GetKey(KeyCode.Escape))
         {
@@ -118,15 +130,31 @@ public class Player : MonoBehaviour
             _verticalSpeed = -1;
             if (_controller.isGrounded && Input.GetButtonDown("Jump"))
             {
-                _verticalSpeed = _jumpSpeed + 1;
+                _verticalSpeed = _jumpSpeed;
             }
         }
-        else if (Input.GetButtonDown("Jump") && _inAirJumps == 1)
+        else if (Input.GetButtonDown("Jump"))
         {
-            _verticalSpeed = _jumpSpeed + 1;
-            _inAirJumps--;
+            if(_inAirJumps == 1)
+            {
+                _verticalSpeed = _jumpSpeed + 1;
+                _inAirJumps--;
+            }
+            else if(_fuelAvailable && _inAirJumps == 0)
+            {
+                if (Input.GetButton("Jump"))
+                {
+                    _verticalSpeed = _jumpSpeed + 1;
+                    _fuelTank -= _dJumpBoostDrain;
+                    _canRecharge = false;
+                    StartCoroutine(FuelCooling());
+                }
+            }
         }
+        
 
+
+        //slamming/groundpound
         if (_controller.isGrounded == false && Input.GetKey(KeyCode.C))
         {
             Vector3 slamDirection = Camera.main.transform.forward * 2;
@@ -138,24 +166,28 @@ public class Player : MonoBehaviour
             transform.position = transform.position;
         }
 
+        //Jetting and dashing
         if (_fuelAvailable == true)
         {
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
                 _movespeed *= _jetSpeedMultiplier;
                 _jetHoldTime = Time.timeSinceLevelLoad;
+                _fuelInUse = true;
             }
             if (Input.GetKeyUp(KeyCode.LeftShift))
             {
-                if (!_jetHeld)
+                if (!_jetHeld && _fuelTank > _dashFuelDrain)
                 {
                     _controller.Move(_dashDirection);
                     _fuelTank -= _dashFuelDrain;
+                    _fuelInUse = true;
                 }
 
+                _fuelInUse = false;
                 _jetHeld = false;
-                StartCoroutine(FuelCooling());
                 SetDefaultSpeed();
+                StartCoroutine(FuelCooling());
             }
 
             if (Input.GetKey(KeyCode.LeftShift))
@@ -173,7 +205,7 @@ public class Player : MonoBehaviour
         velocity.y = _verticalSpeed;
 
         _controller.Move(velocity * Time.deltaTime);
-        Debug.Log("CURRENT FUEL: " + _fuelTank);
+        Debug.Log("CURRENT FUEL: " + _fuelTank + " And inairjummps = " + _inAirJumps);
     }
 
     void FuelCheck()

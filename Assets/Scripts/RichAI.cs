@@ -62,7 +62,6 @@ public class RichAI : MonoBehaviour
     private GameObject _projectilePrefab;
 
     //---Starting/Initializing functions---//
-
     void Start()
     {
         _anim = this.GetComponent<Animator>();
@@ -94,6 +93,7 @@ public class RichAI : MonoBehaviour
         {
             AIFunctionality();
         }
+        StartCoroutine(Attack());
     }
 
 

@@ -121,57 +121,38 @@ public class RichAI : MonoBehaviour
         }
         else if (TargetIsInSight())
         {
-
             if (!go)
             { //useWaypoints is false and the player has exceeded moveableRadius, shutdown AI until player is near.
-
                 return;
-
             }
-
 
 
             if ((distance > attackRange) && (!runAway) && (!runTo))
             {
-
                 enemyCanAttack = false; //the target is too far away to attack
-
                 MoveTowards(moveToward); //move closer
-
             }
             else if ((smoothAttackRangeBuffer) && (distance > attackRange + 5.0f))
             {
-
                 smoothAttackRangeBuffer = false;
-
                 WalkNewPath();
-
             }
             else if ((runAway || runTo) && (distance > runDistance) && (!executeBufferState))
             {
-
                 //move in random directions.
-
                 if (monitorRunTo)
                 {
-
                     monitorRunTo = false;
-
                 }
 
                 if (runAway)
                 {
-
                     WalkNewPath();
-
                 }
                 else
                 {
-
                     MoveTowards(moveToward);
-
                 }
-
             }
             else if ((runAway || runTo) && (distance < runDistance) && (!executeBufferState))
             { //make sure they do not get too close to the target
@@ -189,96 +170,61 @@ public class RichAI : MonoBehaviour
 
                 if (runAway)
                 {
-
                     MoveTowards(moveAway); //move away
-
                 }
                 else
                 {
-
                     MoveTowards(moveToward); //move toward
-
                 }
-
             }
             else if (executeBufferState && ((runAway) && (distance < runBufferDistance)) || ((runTo) && (distance > runBufferDistance)))
             {
-
                 //continue to run!
-
                 if (runAway)
                 {
-
                     MoveTowards(moveAway); //move away
-
                 }
                 else
                 {
-
                     MoveTowards(moveToward); //move toward
-
                 }
-
             }
             else if ((executeBufferState) && (((runAway) && (distance > runBufferDistance)) || ((runTo) && (distance < runBufferDistance))))
             {
-
                 monitorRunTo = true; //make sure that when we have made it to our buffer distance (close to user) we stop the charge until far enough away.
 
                 executeBufferState = false; //go back to normal activity
-
             }
 
-
             //start attacking if close enough
-
             if ((distance < attackRange) || ((!runAway && !runTo) && (distance < runDistance)))
             {
-
                 if (runAway)
                 {
-
                     smoothAttackRangeBuffer = true;
-
                 }
 
                 if (Time.time > lastShotFired + attackTime)
                 {
-
                     StartCoroutine(Attack());
-
                 }
-
             }
-
-
-
         }
         else if ((playerHasBeenSeen) && (!targetIsOutOfSight) && (go))
         {
-
             lostPlayerTimer = Time.time + huntingTimer;
-
             StartCoroutine(HuntDownTarget(lastVisTargetPos));
-
         }
         else if (useWaypoints)
         {
-
             Patrol();
-
         }
         else if (((!playerHasBeenSeen) && (go)) && ((moveableRadius == 0) || (distance < moveableRadius)))
         {
-
             //the idea here is that the enemy has not yet seen the player, but the player is fairly close while still not visible by the enemy
-
             //it will move in a random direction continuously altering its direction every 2 seconds until it does see the player.
-
             WalkNewPath();
-
         }
-
     }
 
 
@@ -291,36 +237,23 @@ public class RichAI : MonoBehaviour
             while (enemyCanAttack)
             {
                 lastShotFired = Time.time;
-
                 _player.TakeDamage(13);
-                
                 yield return new WaitForSeconds(attackTime);
-
             }
-
         }
-
     }
-
-
     //verify enemy can see the target
 
     bool TargetIsInSight()
     {
-
         //determine if the enemy should be doing anything other than standing still
-
         if ((moveableRadius > 0) && (Vector3.Distance(transform.position, target.position) > moveableRadius))
         {
-
             go = false;
-
         }
         else
-        {
-
+        { 
             go = true;
-
         }
 
 
@@ -356,7 +289,6 @@ public class RichAI : MonoBehaviour
     //target tracking
     IEnumerator HuntDownTarget(Vector3 position)
     {
-
         //if this function is called, the enemy has lost sight of the target and must track him down!
 
         //assuming AI is not too intelligent, they will only move toward his last position, and hope they see him
@@ -598,11 +530,9 @@ public class RichAI : MonoBehaviour
                         break;
 
                     default:
-
                         //do nothing
                         break;
                 }
-
 
 
             }
@@ -656,16 +586,15 @@ public class RichAI : MonoBehaviour
                 switch (estCheckDirection)
                 {
                     case 1:
-
                         direction.y += antigravity;
                         estHeight -= direction.y * Time.deltaTime;
                         break;
 
                     case 2:
-
                         direction.y -= antigravity;
                         estHeight -= direction.y * Time.deltaTime;
                         break;
+
                     default:
                         //do nothing
                         break;
@@ -692,9 +621,5 @@ public class RichAI : MonoBehaviour
         {
             characterController.Move(direction * Time.deltaTime);
         }
-
     }
-
-
-
 }

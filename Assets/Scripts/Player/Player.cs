@@ -11,7 +11,8 @@ public class Player : MonoBehaviour
     [SerializeField]
     private float _gravity = 9.8f;
     [SerializeField]
-    private float _health = 100f;
+    private float _maxHealth = 100f;
+    private float _health;
     [SerializeField]
     private float _jumpSpeed = 10f;
     private float _verticalSpeed = 0f;
@@ -50,22 +51,26 @@ public class Player : MonoBehaviour
     private bool _fuelInUse;
     private bool _canRecharge;
     private float _dJumpBoostDrain = 20f;
+    [SerializeField]
+    private float _healRate = 10f;
+    [SerializeField]
+    private float _healFuelCost = 10f;
 
     // Start is called before the first frame update
     void Start()
     {
+        _health = _maxHealth;
         _fuelTank = _maxFuel;
 
         Cursor.lockState = CursorLockMode.Locked;
 
         _controller = GetComponent<CharacterController>();
-
-
     }
 
     // Update is called once per frame
     void Update()
     {
+        Debug.Log("CURRENT FUEL: " + _fuelTank + " ANd health = " + _health);
         //shoot
         if (Input.GetMouseButtonDown(0))
         {
@@ -81,18 +86,23 @@ public class Player : MonoBehaviour
         CalculateMovement();
         FuelCheck();
 
+        if (Input.GetKey(KeyCode.Q) && _fuelAvailable && _health < _maxHealth)
+        {
+            FuelHeal();
+        }
 
+        if (Input.GetKeyUp(KeyCode.Q))
+        {
+            _fuelInUse = false;
+            StartCoroutine(FuelCooling());
+        }
+
+        //Fuel recharging
         if(_canRecharge == true && !_fuelInUse)
         {
             _fuelTank += _fuelRechargeRate * Time.deltaTime;
 
         }
-
-        if(!_fuelInUse)
-        {
-            
-        }
-
 
         if (Input.GetKey(KeyCode.Escape))
         {
@@ -102,6 +112,11 @@ public class Player : MonoBehaviour
         if (_fuelTank > _maxFuel)
         {
             _fuelTank = _maxFuel;
+        }
+
+        if(_health <= 0)
+        {
+            Destroy(this.gameObject);
         }
     }
 
@@ -205,7 +220,6 @@ public class Player : MonoBehaviour
         velocity.y = _verticalSpeed;
 
         _controller.Move(velocity * Time.deltaTime);
-        Debug.Log("CURRENT FUEL: " + _fuelTank + " ANd health = " + _health);
     }
 
     void FuelCheck()
@@ -236,5 +250,13 @@ public class Player : MonoBehaviour
     public void TakeDamage(int amount)
     {
         _health -= amount;
+    }
+
+    public void FuelHeal()
+    {
+        _fuelTank -= _healFuelCost * Time.deltaTime;
+        _health += _healRate * Time.deltaTime;
+        _fuelInUse = true;
+        _canRecharge = false;
     }
 }

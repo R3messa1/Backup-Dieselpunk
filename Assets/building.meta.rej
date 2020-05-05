@@ -1,0 +1,10 @@
+diff a/Assets/building.meta b/Assets/building.meta	(rejected hunks)
+@@ -1,8 +0,0 @@
+-fileFormatVersion: 2
+-guid: f393545a32df59546a5af46ecf238f45
+-folderAsset: yes
+-DefaultImporter:
+-  externalObjects: {}
+-  userData: 
+-  assetBundleName: 
+-  assetBundleVariant: 

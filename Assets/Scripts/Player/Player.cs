@@ -55,10 +55,17 @@ public class Player : MonoBehaviour
     private float _healRate = 10f;
     [SerializeField]
     private float _healFuelCost = 10f;
+    [SerializeField]
+    private GameObject _muzzleFlashPrefabLeft;
+    [SerializeField]
+    private GameObject _muzzleFlashPrefabRight;
 
     // Start is called before the first frame update
     void Start()
     {
+        _muzzleFlashPrefabLeft.SetActive(false);
+        _muzzleFlashPrefabRight.SetActive(false);
+
         _health = _maxHealth;
         _fuelTank = _maxFuel;
 
@@ -71,9 +78,11 @@ public class Player : MonoBehaviour
     void Update()
     {
         Debug.Log("CURRENT FUEL: " + _fuelTank + " ANd health = " + _health);
+
         //shoot
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButton(0))
         {
+            _muzzleFlashPrefabLeft.SetActive(true);
             Ray rayOrigin = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
             RaycastHit hitInfo;
 
@@ -81,6 +90,19 @@ public class Player : MonoBehaviour
             {
 
             }
+        }
+        else
+        {
+            _muzzleFlashPrefabLeft.SetActive(false);
+        }
+
+        if (Input.GetMouseButton(1))
+        {
+            _muzzleFlashPrefabRight.SetActive(true);
+        }
+        else
+        {
+            _muzzleFlashPrefabRight.SetActive(false);
         }
 
         CalculateMovement();

@@ -56,12 +56,17 @@ public class RichAI : MonoBehaviour
     private int wpPatrol = 0; //determines what waypoint we are heading toward.
     private bool pauseWpControl; //makes sure unit pauses appropriately.
     private bool smoothAttackRangeBuffer = false; //for runAway AI to not be so messed up by their visual radius and attack range.
-
+    private Player _player;
+    private Animator _anim;
 
     //---Starting/Initializing functions---//
 
     void Start()
     {
+        _anim = this.GetComponent<Animator>();
+        _player = GameObject.Find("Player").GetComponent<Player>();
+        _anim.transform.position = transform.TransformDirection(transform.position);
+
         StartCoroutine(Initialize()); //co-routine is used incase you need to interupt initiialization until something else is done.
     }
 
@@ -72,7 +77,6 @@ public class RichAI : MonoBehaviour
         {
             estGravityTimer = Time.time;
         }
-
         characterController = gameObject.GetComponent<CharacterController>();
         initialGo = true;
         yield return null;
@@ -178,9 +182,7 @@ public class RichAI : MonoBehaviour
 
                 if (!monitorRunTo)
                 {
-
                     executeBufferState = true; //smooth buffer is now active!
-
                 }
 
                 walkInRandomDirection = false; //obviously we're no longer moving at random.
@@ -280,28 +282,18 @@ public class RichAI : MonoBehaviour
     }
 
 
-
-    //attack stuff...
-
     IEnumerator Attack()
     {
-
         enemyCanAttack = true;
-
-
-
         if (!enemyIsAttacking)
         {
-
             enemyIsAttacking = true;
-
             while (enemyCanAttack)
             {
-
                 lastShotFired = Time.time;
 
-                //implement attack variables here
-
+                _player.TakeDamage(13);
+                
                 yield return new WaitForSeconds(attackTime);
 
             }
@@ -310,13 +302,6 @@ public class RichAI : MonoBehaviour
 
     }
 
-
-
-
-
-
-
-    //----Helper Functions---//
 
     //verify enemy can see the target
 
@@ -346,43 +331,29 @@ public class RichAI : MonoBehaviour
 
         if ((visualRadius > 0) && (Vector3.Distance(transform.position, target.position) > visualRadius))
         {
-
             return false;
-
         }
 
 
-
         //Now check to make sure nothing is blocking the line of sight
-
         RaycastHit sight;
 
         if (Physics.Linecast(transform.position, target.position, out sight))
         {
-
             if (!playerHasBeenSeen && sight.transform == target)
             {
-
                 playerHasBeenSeen = true;
-
             }
-
             return sight.transform == target;
-
         }
         else
         {
-
             return false;
-
         }
-
     }
 
 
-
     //target tracking
-
     IEnumerator HuntDownTarget(Vector3 position)
     {
 
@@ -407,44 +378,29 @@ public class RichAI : MonoBehaviour
 
             if (TargetIsInSight())
             {
-
                 targetIsOutOfSight = false;
-
                 break;
-
             }
-
-
 
             //check to see if we should give up our search
-
             if (Time.time > lostPlayerTimer)
             {
-
+                _anim.SetTrigger("idle");
                 targetIsOutOfSight = false;
-
                 playerHasBeenSeen = false;
-
                 break;
-
             }
-
             yield return null;
-
         }
-
     }
 
 
 
     void Patrol()
     {
-
         if (pauseWpControl)
         {
-
             return;
-
         }
 
         Vector3 destination = CurrentPath();
@@ -457,304 +413,194 @@ public class RichAI : MonoBehaviour
 
         if (distance <= 1.5f + floatHeight)
         {// || (distance < floatHeight+1.5f)) {
-
             if (pauseAtWaypoints)
             {
-
                 if (!pauseWpControl)
                 {
-
                     pauseWpControl = true;
-
                     StartCoroutine(WaypointPause());
-
                 }
-
             }
             else
             {
-
                 NewPath();
-
             }
-
         }
-
     }
-
 
 
     IEnumerator WaypointPause()
     {
-
         yield return new WaitForSeconds(Random.Range(pauseMin, pauseMax));
-
         NewPath();
-
         pauseWpControl = false;
-
     }
-
 
 
     Vector3 CurrentPath()
     {
-
         return waypoints[wpPatrol].position;
-
     }
-
 
 
     void NewPath()
     {
-
         if (!wpCountdown)
         {
-
             wpPatrol++;
 
             if (wpPatrol >= waypoints.GetLength(0))
             {
-
                 if (reversePatrol)
                 {
-
                     wpCountdown = true;
-
                     wpPatrol -= 2;
-
                 }
                 else
                 {
-
                     wpPatrol = 0;
-
                 }
-
             }
-
         }
         else if (reversePatrol)
         {
-
             wpPatrol--;
 
             if (wpPatrol < 0)
             {
-
                 wpCountdown = false;
-
                 wpPatrol = 1;
-
             }
-
         }
-
     }
-
 
 
     //random movement behaviour
-
     void WalkNewPath()
     {
-
         if (!walkInRandomDirection)
         {
-
             walkInRandomDirection = true;
-
             if (!playerHasBeenSeen)
             {
-
                 randomDirection = new Vector3(Random.Range(-0.15f, 0.15f), 0, Random.Range(-0.15f, 0.15f));
-
             }
             else
             {
-
                 randomDirection = new Vector3(Random.Range(-0.5f, 0.5f), 0, Random.Range(-0.5f, 0.5f));
-
+                randomDirectionTimer = Time.time;
             }
-
-            randomDirectionTimer = Time.time;
-
         }
         else if (walkInRandomDirection)
         {
-
             MoveTowards(randomDirection);
-
         }
-
-
 
         if ((Time.time - randomDirectionTimer) > 2)
         {
-
             //choose a new random direction after 2 seconds
-
             walkInRandomDirection = false;
-
         }
-
     }
-
 
 
     //standard movement behaviour
 
     void MoveTowards(Vector3 direction)
     {
-
+        _anim.SetTrigger("Walk");
         direction.y = 0;
-
         int speed = walkSpeed;
-
-
-
+        
         if (walkInRandomDirection)
         {
-
             speed = randomSpeed;
-
         }
-
-
 
         if (executeBufferState)
         {
-
             speed = runSpeed;
-
         }
 
 
-
         //rotate toward or away from the target
-
         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), rotationSpeed * Time.deltaTime);
-
         transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
 
 
         //slow down when we are not facing the target
-
         Vector3 forward = transform.TransformDirection(Vector3.forward);
-
         float speedModifier = Vector3.Dot(forward, direction.normalized);
-
         speedModifier = Mathf.Clamp01(speedModifier);
 
 
-
         //actually move toward or away from the target
-
         direction = forward * speed * speedModifier;
 
         if ((!canFly) && (floatHeight <= 0.0f))
         {
-
             direction.y -= gravity;
-
         }
-
         characterController.Move(direction * Time.deltaTime);
-
+        
     }
 
-
-
     //continuous gravity checks
-
     void MonitorGravity()
     {
-
         Vector3 direction = new Vector3(0, 0, 0);
-
-
 
         if ((!canFly) && (floatHeight > 0.0f))
         {
-
             //we need to make sure our enemy is floating.. using evil raycasts! bwahahahah!
-
             if ((estimateElevation) && (estRayTimer > 0.0f))
             {
-
                 if (Time.time > estGravityTimer)
                 {
-
                     RaycastHit floatCheck;
 
                     if (Physics.Raycast(transform.position, -Vector3.up, out floatCheck))
                     {
-
                         if (floatCheck.distance < floatHeight - 0.5f)
                         {
-
                             estCheckDirection = 1;
-
                             estHeight = floatHeight - floatCheck.distance;
-
                         }
                         else if (floatCheck.distance > floatHeight + 0.5f)
                         {
-
                             estCheckDirection = 2;
-
                             estHeight = floatCheck.distance - floatHeight;
-
                         }
                         else
                         {
-
                             estCheckDirection = 3;
-
                         }
-
                     }
                     else
                     {
-
                         estCheckDirection = 2;
-
                         estHeight = floatHeight * 2;
-
                     }
-
                     estGravityTimer = Time.time + estRayTimer;
-
                 }
-
 
 
                 switch (estCheckDirection)
                 {
-
                     case 1:
-
                         direction.y += antigravity;
-
                         estHeight -= direction.y * Time.deltaTime;
-
                         break;
 
                     case 2:
-
                         direction.y -= gravity;
-
                         estHeight -= direction.y * Time.deltaTime;
-
                         break;
 
                     default:
 
                         //do nothing
-
                         break;
-
                 }
 
 
@@ -762,41 +608,29 @@ public class RichAI : MonoBehaviour
             }
             else
             {
-
                 RaycastHit floatCheck;
 
                 if (Physics.Raycast(transform.position, -Vector3.up, out floatCheck, floatHeight + 1.0f))
                 {
-
                     if (floatCheck.distance < floatHeight)
                     {
-
                         direction.y += antigravity;
-
                     }
-
                 }
                 else
                 {
-
                     direction.y -= gravity;
-
                 }
-
             }
-
         }
         else
         {
 
             //bird like creature! Again with the evil raycasts! :p
-
             if ((estimateElevation) && (estRayTimer > 0.0f))
             {
-
                 if (Time.time > estGravityTimer)
                 {
-
                     RaycastHit floatCheck;
 
                     if (Physics.Raycast(transform.position, -Vector3.up, out floatCheck))

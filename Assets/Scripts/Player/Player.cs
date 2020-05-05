@@ -11,6 +11,8 @@ public class Player : MonoBehaviour
     [SerializeField]
     private float _gravity = 9.8f;
     [SerializeField]
+    private float _health = 100f;
+    [SerializeField]
     private float _jumpSpeed = 10f;
     private float _verticalSpeed = 0f;
     [SerializeField]
@@ -22,8 +24,6 @@ public class Player : MonoBehaviour
     [SerializeField]
     private int _inAirJumps = 1;
     
-
-
     //dash related vars
     [SerializeField]
     private float _dashDistance = 10f;
@@ -205,7 +205,7 @@ public class Player : MonoBehaviour
         velocity.y = _verticalSpeed;
 
         _controller.Move(velocity * Time.deltaTime);
-        Debug.Log("CURRENT FUEL: " + _fuelTank + " And inairjummps = " + _inAirJumps);
+        Debug.Log("CURRENT FUEL: " + _fuelTank + " ANd health = " + _health);
     }
 
     void FuelCheck()
@@ -231,5 +231,10 @@ public class Player : MonoBehaviour
     {
         yield return new WaitForSeconds(_fuelRechargeDelay);
         _canRecharge = true;
+    }
+
+    public void TakeDamage(int amount)
+    {
+        _health -= amount;
     }
 }

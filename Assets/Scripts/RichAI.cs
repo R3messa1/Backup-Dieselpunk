@@ -94,9 +94,6 @@ public class RichAI : MonoBehaviour
         {
             AIFunctionality();
         }
-
-        Quaternion localDir = transform.localRotation;
-        Vector3 localPos = transform.localPosition;
     }
 
 
@@ -234,7 +231,8 @@ public class RichAI : MonoBehaviour
 
     IEnumerator Attack()
     {
-        
+        Quaternion localDir = transform.localRotation;
+        Vector3 localPos = transform.localPosition;
 
         enemyCanAttack = true;
         if (!enemyIsAttacking)

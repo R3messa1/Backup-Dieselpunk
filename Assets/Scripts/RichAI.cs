@@ -232,7 +232,7 @@ public class RichAI : MonoBehaviour
     {
         Quaternion localDir = transform.localRotation;
         Vector3 localPos = transform.localPosition;
-        Vector3 posOffset = new Vector3(0, 0, 2);
+        Vector3 posOffset = Vector3.forward;
 
         Instantiate(_projectilePrefab, localPos + posOffset, localDir);
     }

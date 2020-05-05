@@ -804,99 +804,59 @@ public class RichAI : MonoBehaviour
 
                         if (floatCheck.distance < floatHeight - 0.5f)
                         {
-
                             estCheckDirection = 1;
-
                             estHeight = floatHeight - floatCheck.distance;
-
                         }
                         else if (floatCheck.distance > floatHeight + 0.5f)
                         {
-
                             estCheckDirection = 2;
-
                             estHeight = floatCheck.distance - floatHeight;
-
                         }
                         else
                         {
-
                             estCheckDirection = 3;
-
                         }
-
                     }
-
                     estGravityTimer = Time.time + estRayTimer;
-
                 }
-
-
-
                 switch (estCheckDirection)
                 {
-
                     case 1:
 
                         direction.y += antigravity;
-
                         estHeight -= direction.y * Time.deltaTime;
-
                         break;
 
                     case 2:
 
                         direction.y -= antigravity;
-
                         estHeight -= direction.y * Time.deltaTime;
-
                         break;
-
                     default:
-
                         //do nothing
-
                         break;
-
                 }
-
-
-
             }
             else
             {
-
                 RaycastHit floatCheck;
-
                 if (Physics.Raycast(transform.position, -Vector3.up, out floatCheck))
                 {
-
                     if (floatCheck.distance < floatHeight - 0.5f)
                     {
-
                         direction.y += antigravity;
-
                     }
                     else if (floatCheck.distance > floatHeight + 0.5f)
                     {
-
                         direction.y -= antigravity;
-
                     }
-
                 }
-
             }
-
         }
-
-
 
         if ((!estimateElevation) || ((estimateElevation) && (estHeight >= 0.0f)))
         {
-
             characterController.Move(direction * Time.deltaTime);
-
         }
 
     }

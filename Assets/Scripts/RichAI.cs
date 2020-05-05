@@ -58,6 +58,8 @@ public class RichAI : MonoBehaviour
     private bool smoothAttackRangeBuffer = false; //for runAway AI to not be so messed up by their visual radius and attack range.
     private Player _player;
     private Animator _anim;
+    [SerializeField]
+    private GameObject _projectilePrefab;
 
     //---Starting/Initializing functions---//
 
@@ -65,12 +67,11 @@ public class RichAI : MonoBehaviour
     {
         _anim = this.GetComponent<Animator>();
         _player = GameObject.Find("Player").GetComponent<Player>();
-        _anim.transform.position = transform.TransformDirection(transform.position);
 
         StartCoroutine(Initialize()); //co-routine is used incase you need to interupt initiialization until something else is done.
     }
 
-
+    
     IEnumerator Initialize()
     {
         if ((estimateElevation) && (floatHeight > 0.0f))
@@ -93,6 +94,9 @@ public class RichAI : MonoBehaviour
         {
             AIFunctionality();
         }
+
+        Quaternion localDir = transform.localRotation;
+        Vector3 localPos = transform.localPosition;
     }
 
 
@@ -230,6 +234,8 @@ public class RichAI : MonoBehaviour
 
     IEnumerator Attack()
     {
+        
+
         enemyCanAttack = true;
         if (!enemyIsAttacking)
         {
@@ -237,7 +243,7 @@ public class RichAI : MonoBehaviour
             while (enemyCanAttack)
             {
                 lastShotFired = Time.time;
-                _player.TakeDamage(13);
+                Instantiate(_projectilePrefab, localPos, localDir);
                 yield return new WaitForSeconds(attackTime);
             }
         }
@@ -596,7 +602,6 @@ public class RichAI : MonoBehaviour
                         break;
 
                     default:
-                        //do nothing
                         break;
                 }
             }

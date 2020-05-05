@@ -247,7 +247,7 @@ public class Player : MonoBehaviour
         _canRecharge = true;
     }
 
-    public void TakeDamage(int amount)
+    public void TakeDamage(float amount)
     {
         _health -= amount;
     }

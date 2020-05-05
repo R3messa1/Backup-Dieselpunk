@@ -93,7 +93,7 @@ public class RichAI : MonoBehaviour
         {
             AIFunctionality();
         }
-        StartCoroutine(Attack());
+        Offense();
     }
 
 
@@ -228,23 +228,19 @@ public class RichAI : MonoBehaviour
         }
     }
 
-
-    IEnumerator Attack()
+    public void Offense()
     {
         Quaternion localDir = transform.localRotation;
         Vector3 localPos = transform.localPosition;
+        Vector3 posOffset = new Vector3(0, 0, 2);
 
-        enemyCanAttack = true;
-        if (!enemyIsAttacking)
-        {
-            enemyIsAttacking = true;
-            while (enemyCanAttack)
-            {
-                lastShotFired = Time.time;
-                Instantiate(_projectilePrefab, localPos, localDir);
-                yield return new WaitForSeconds(attackTime);
-            }
-        }
+        Instantiate(_projectilePrefab, localPos + posOffset, localDir);
+    }
+
+    IEnumerator Attack()
+    {
+        yield return new WaitForSeconds(attackTime);
+        Debug.Log("Should be attacking rn");
     }
     //verify enemy can see the target
 

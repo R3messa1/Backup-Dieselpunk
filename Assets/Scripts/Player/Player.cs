@@ -61,12 +61,19 @@ public class Player : MonoBehaviour
     private GameObject _muzzleFlashPrefabLeft;
     [SerializeField]
     private GameObject _muzzleFlashPrefabRight;
+    [SerializeField]
+    private GameObject _slamDirtPrefab;
+    [SerializeField]
+    private GameObject _jetTrailPrefab;
 
     //Smashstuff :3
     [SerializeField]
-    private float _slamRadius = 5f;
+    private float _slamRadius = 30f;
     [SerializeField]
-    private float _slamPower = 8f;
+    private float _slamPower = 70f;
+    private bool _slamUsed = false;
+    [SerializeField]
+    private float _slamCooldown = 2f;
 
     // Start is called before the first frame update
     void Start()
@@ -152,7 +159,9 @@ public class Player : MonoBehaviour
 
     void SlamAttack()
     {
-        //Instantiate();
+        
+        Instantiate(_slamDirtPrefab, transform.position, _slamDirtPrefab.transform.rotation);
+        Destroy(_slamDirtPrefab.gameObject, 2.5f);
 
         Collider[] colliders = Physics.OverlapSphere(transform.position, _slamRadius);
 
@@ -162,8 +171,11 @@ public class Player : MonoBehaviour
             if(cC != null)
             {
                 cC.Move(Vector3.up * _slamPower * Time.deltaTime);
+                _controller.transform.position = transform.position;
             }
         }
+
+        StartCoroutine(SlamCooldown());
     }
 
     void CalculateMovement()
@@ -215,7 +227,7 @@ public class Player : MonoBehaviour
         
 
         //slamming/groundpound
-        if (Input.GetKey(KeyCode.C))
+        if (Input.GetKey(KeyCode.C) && !_slamUsed)
         {
             Vector3 slamDirection = Camera.main.transform.forward * 2;
             slamDirection += Vector3.down;
@@ -223,7 +235,9 @@ public class Player : MonoBehaviour
 
             if (_controller.isGrounded)
             {
+                Debug.Log("SLAM!");
                 SlamAttack();
+                _slamUsed = true;
                 return;
             }
         }
@@ -258,6 +272,7 @@ public class Player : MonoBehaviour
 
             if (Input.GetKey(KeyCode.LeftShift))
             {
+                Instantiate(_jetTrailPrefab, transform.position, Quaternion.identity);
                 _canRecharge = false;
                 _fuelTank -= _jetFuelDrainPerSec * Time.deltaTime;
                 if (Time.timeSinceLevelLoad - _jetHoldTime > _minHeldDuration)
@@ -296,6 +311,12 @@ public class Player : MonoBehaviour
     {
         yield return new WaitForSeconds(_fuelRechargeDelay);
         _canRecharge = true;
+    }
+
+    IEnumerator SlamCooldown()
+    {
+        yield return new WaitForSeconds(_slamCooldown);
+        _slamUsed = false;
     }
 
     public void TakeDamage(float amount)

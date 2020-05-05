@@ -46,7 +46,7 @@ public class RichAI : MonoBehaviour
     private bool targetIsOutOfSight; //Player tracking overload prevention. Makes sure we do not call the same coroutines over and over.
     private Vector3 randomDirection; //Random movement behaviour setting.
     private float randomDirectionTimer; //Random movement behaviour tracking.
-    private float gravity = 20.0f; //force of gravity pulling the enemy down.
+    private float gravity = 10.0f; //force of gravity pulling the enemy down.
     private float antigravity = 2.0f; //force at which floating/flying enemies repel
     private float estHeight = 0.0f; //floating/flying creatures using estimated elevation use this to estimate height necessities and gravity impacts.
     private float estGravityTimer = 0.0f; //floating/flying creatures using estimated elevation will use this to actually monitor time values.

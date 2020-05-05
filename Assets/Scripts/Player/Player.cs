@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters;
+using UnityEditorInternal;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -51,6 +52,7 @@ public class Player : MonoBehaviour
     private bool _fuelInUse;
     private bool _canRecharge;
     private float _dJumpBoostDrain = 20f;
+    
     [SerializeField]
     private float _healRate = 10f;
     [SerializeField]
@@ -59,6 +61,12 @@ public class Player : MonoBehaviour
     private GameObject _muzzleFlashPrefabLeft;
     [SerializeField]
     private GameObject _muzzleFlashPrefabRight;
+
+    //Smashstuff :3
+    [SerializeField]
+    private float _slamRadius = 5f;
+    [SerializeField]
+    private float _slamPower = 8f;
 
     // Start is called before the first frame update
     void Start()
@@ -142,6 +150,22 @@ public class Player : MonoBehaviour
         }
     }
 
+    void SlamAttack()
+    {
+        //Instantiate();
+
+        Collider[] colliders = Physics.OverlapSphere(transform.position, _slamRadius);
+
+        foreach(Collider nearbyObject in colliders)
+        {
+            CharacterController cC = nearbyObject.GetComponent<CharacterController>();
+            if(cC != null)
+            {
+                cC.Move(Vector3.up * _slamPower * Time.deltaTime);
+            }
+        }
+    }
+
     void CalculateMovement()
     {
         float horizontalInput = Input.GetAxis("Horizontal");
@@ -190,13 +214,18 @@ public class Player : MonoBehaviour
         }
         
 
-
         //slamming/groundpound
-        if (_controller.isGrounded == false && Input.GetKey(KeyCode.C))
+        if (Input.GetKey(KeyCode.C))
         {
             Vector3 slamDirection = Camera.main.transform.forward * 2;
             slamDirection += Vector3.down;
             _controller.Move(slamDirection * _crouchSlamSpeed * Time.deltaTime);
+
+            if (_controller.isGrounded)
+            {
+                SlamAttack();
+                return;
+            }
         }
         else
         {

@@ -52,7 +52,8 @@ public class Player : MonoBehaviour
     private bool _fuelInUse;
     private bool _canRecharge;
     private float _dJumpBoostDrain = 20f;
-    
+
+    private float InstantiationTimer = 0.069f;
     [SerializeField]
     private float _healRate = 10f;
     [SerializeField]
@@ -65,6 +66,8 @@ public class Player : MonoBehaviour
     private GameObject _slamDirtPrefab;
     [SerializeField]
     private GameObject _jetTrailPrefab;
+    [SerializeField]
+    private GameObject _jumpEffect;
 
     //Smashstuff :3
     [SerializeField]
@@ -212,6 +215,7 @@ public class Player : MonoBehaviour
             {
                 _verticalSpeed = _jumpSpeed + 1;
                 _inAirJumps--;
+                Instantiate(_jumpEffect, transform.position, _jumpEffect.transform.rotation);
             }
             else if(_fuelAvailable && _inAirJumps == 0)
             {
@@ -220,6 +224,7 @@ public class Player : MonoBehaviour
                     _verticalSpeed = _jumpSpeed + 1;
                     _fuelTank -= _dJumpBoostDrain;
                     _canRecharge = false;
+                    Instantiate(_jumpEffect, transform.position, _jumpEffect.transform.rotation);
                     StartCoroutine(FuelCooling());
                 }
             }
@@ -272,7 +277,13 @@ public class Player : MonoBehaviour
 
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                Instantiate(_jetTrailPrefab, transform.position, Quaternion.identity);
+                InstantiationTimer -= Time.deltaTime;
+                if(InstantiationTimer <= 0)
+                {
+                    Instantiate(_jetTrailPrefab, transform.position, Quaternion.identity);
+                    InstantiationTimer = 0.069f;
+                }
+                
                 _canRecharge = false;
                 _fuelTank -= _jetFuelDrainPerSec * Time.deltaTime;
                 if (Time.timeSinceLevelLoad - _jetHoldTime > _minHeldDuration)

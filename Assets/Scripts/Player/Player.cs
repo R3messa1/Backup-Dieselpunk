@@ -63,6 +63,8 @@ public class Player : MonoBehaviour
     private GameObject _muzzleFlashPrefabRight;
     [SerializeField]
     private GameObject _slamDirtPrefab;
+    [SerializeField]
+    private GameObject _jetTrailPrefab;
 
     //Smashstuff :3
     [SerializeField]
@@ -270,6 +272,7 @@ public class Player : MonoBehaviour
 
             if (Input.GetKey(KeyCode.LeftShift))
             {
+                Instantiate(_jetTrailPrefab, transform.position, Quaternion.identity);
                 _canRecharge = false;
                 _fuelTank -= _jetFuelDrainPerSec * Time.deltaTime;
                 if (Time.timeSinceLevelLoad - _jetHoldTime > _minHeldDuration)

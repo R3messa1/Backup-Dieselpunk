@@ -68,6 +68,12 @@ public class Player : MonoBehaviour
     private GameObject _jetTrailPrefab;
     [SerializeField]
     private GameObject _jumpEffect;
+    [SerializeField]
+    private GameObject _guns;
+    [SerializeField]
+    private GameObject _MeleeWeapon;
+    //incredibly poor solution for making tab a toggle
+    private bool _weaponSwitched;
 
     //Smashstuff :3
     [SerializeField]
@@ -83,6 +89,8 @@ public class Player : MonoBehaviour
     {
         _muzzleFlashPrefabLeft.SetActive(false);
         _muzzleFlashPrefabRight.SetActive(false);
+
+        _MeleeWeapon.SetActive(false);
 
         _health = _maxHealth;
         _fuelTank = _maxFuel;
@@ -157,6 +165,19 @@ public class Player : MonoBehaviour
         if(_health <= 0)
         {
             Destroy(this.gameObject);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Tab) && _weaponSwitched)
+        {
+            _guns.SetActive(false);
+            _MeleeWeapon.SetActive(true);
+            _weaponSwitched = false;
+        }
+        else if (Input.GetKeyDown(KeyCode.Tab) && !_weaponSwitched)
+        {
+            _MeleeWeapon.SetActive(false);
+            _guns.SetActive(true);
+            _weaponSwitched = true;
         }
     }
 

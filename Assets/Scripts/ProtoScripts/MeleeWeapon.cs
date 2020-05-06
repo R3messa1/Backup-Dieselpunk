@@ -5,13 +5,13 @@ using UnityEngine;
 public class MeleeWeapon : MonoBehaviour
 {
     [SerializeField] Camera FPCamera;
-    [SerializeField] float range = 1f;
+    [SerializeField] float range = 3f;
     [SerializeField] float damage = 50f;
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetButtonDown("Fire1"))
+        if (Input.GetButton("Fire1"))
         {
             Shoot();
         }
@@ -24,10 +24,12 @@ public class MeleeWeapon : MonoBehaviour
         {
             Debug.Log("Kuole saatanan " + hit.transform.name);
             //TODO: add some hit effect for visual players
-            EnemyHealth target = hit.transform.GetComponent<EnemyHealth>();
+            /*EnemyHealth target = hit.transform.GetComponent<EnemyHealth>();
             if (target == null) return;
             //method on EnemyHealth that decreases the enemy's health
-            target.TakeDamage(damage);
+            target.TakeDamage(damage);*/
+            RichAI richAI = hit.transform.GetComponent<RichAI>();
+            richAI.HomeRun();
         }
         else
         {

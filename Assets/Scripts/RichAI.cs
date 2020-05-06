@@ -67,6 +67,7 @@ public class RichAI : MonoBehaviour
         _anim = this.GetComponent<Animator>();
         _player = GameObject.Find("Player").GetComponent<Player>();
 
+
         StartCoroutine(Initialize()); //co-routine is used incase you need to interupt initiialization until something else is done.
     }
 
@@ -475,6 +476,14 @@ public class RichAI : MonoBehaviour
         }
         characterController.Move(direction * Time.deltaTime);
         
+    }
+
+    public void HomeRun()
+    {
+
+        Vector3 _flightHeight = Camera.main.transform.up;
+        Vector3 _flightDistance = Camera.main.transform.forward;
+        transform.Translate(Camera.main.transform.forward);
     }
 
     //continuous gravity checks

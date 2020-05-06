@@ -90,7 +90,8 @@ public class Player : MonoBehaviour
         _muzzleFlashPrefabLeft.SetActive(false);
         _muzzleFlashPrefabRight.SetActive(false);
 
-        _MeleeWeapon.SetActive(false);
+        _MeleeWeapon.SetActive(true);
+        _guns.SetActive(false);
 
         _health = _maxHealth;
         _fuelTank = _maxFuel;
